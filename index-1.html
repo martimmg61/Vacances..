@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2E2A22">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vacances Poligny">
+<link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlZhY2FuY2VzIFBvbGlnbnkiLAogICJzaG9ydF9uYW1lIjogIlZhY2FuY2VzIiwKICAic3RhcnRfdXJsIjogIi4vaW5kZXguaHRtbCIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzJFMkEyMiIsCiAgInRoZW1lX2NvbG9yIjogIiMyRTJBMjIiLAogICJvcmllbnRhdGlvbiI6ICJwb3J0cmFpdCIsCiAgImljb25zIjogW10KfQo=">
+<title>Compte à rebours vacances</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#2E2A22;}
+body{font-family:Georgia,serif;color:#F4EFE4;display:flex;align-items:flex-start;justify-content:center;padding:20px;min-height:100vh;}
+.card{text-align:center;max-width:480px;width:100%;}
+.eyebrow{font-family:system-ui,sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:2px;color:#C08A3E;margin-bottom:10px;}
+h1{font-size:28px;margin-bottom:8px;}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+.unit{background:#3A362C;border:1px solid #55503F;border-radius:6px;padding:14px 4px;}
+.num{font-size:32px;font-weight:bold;color:#C08A3E;}
+.lbl{font-family:system-ui,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#B4AB98;margin-top:4px;}
+.detail{font-family:system-ui,sans-serif;font-size:14px;color:#B4AB98;}
+.bar-track{width:100%;height:6px;background:#3A362C;border-radius:3px;overflow:hidden;margin-bottom:18px;}
+.share-btn{font-family:system-ui,sans-serif;font-size:12px;padding:6px 12px;border-radius:4px;cursor:pointer;border:1px solid #55503F;background:transparent;color:#B4AB98;margin-bottom:20px;}
+.share-btn.copied{border-color:#C08A3E;color:#C08A3E;}
+.list{font-family:system-ui,sans-serif;text-align:left;border-top:1px solid #55503F;margin-top:10px;padding-top:16px;}
+.list-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#8A8371;margin-bottom:10px;}
+.list-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;font-size:14px;border-bottom:1px solid #3A362C;gap:8px;}
+.list-row:last-child{border-bottom:none;}
+.list-row.active .name{color:#C08A3E;font-weight:bold;}
+.list-row .name{color:#F4EFE4;flex:1;}
+.list-row .date{color:#8A8371;white-space:nowrap;}
+.list-row .schooldays{color:#6E6858;font-size:11px;white-space:nowrap;}
+.today{font-family:system-ui,sans-serif;font-size:12px;color:#8A8371;margin-bottom:6px;text-transform:capitalize;}
+.weeks{font-family:system-ui,sans-serif;font-size:13px;color:#C08A3E;margin-bottom:18px;}
+.motiv{font-family:system-ui,sans-serif;font-size:14px;color:#B4AB98;font-style:italic;margin-bottom:18px;}
+.pulse .num{animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{color:#C08A3E}50%{color:#E7A94D;transform:scale(1.04)}}
+.num{transition:transform .15s ease;display:inline-block;}
+.num.bump{animation:bump .35s ease;}
+@keyframes bump{0%{transform:translateY(0);opacity:1}30%{transform:translateY(-6px);opacity:.4}31%{transform:translateY(6px)}100%{transform:translateY(0);opacity:1}}
+.view-fade{animation:viewFade .28s ease;}
+@keyframes viewFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.list-row,.checklist-item,.plan-row,.placecard{animation:rowIn .35s ease backwards;}
+@keyframes rowIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+.checklist-item input[type=checkbox]{transition:transform .15s ease;}
+.checklist-item input[type=checkbox]:active{transform:scale(1.3);}
+.checklist-item.checked span{transition:color .25s ease;}
+.bar-fill{height:100%;background:#C08A3E;width:0%;transition:width .8s cubic-bezier(.22,1,.36,1);}
+.addhome{font-family:system-ui,sans-serif;font-size:12px;color:#8A8371;border-top:1px solid #55503F;margin-top:18px;padding-top:14px;line-height:1.5;}
+.addhome b{color:#B4AB98;}
+.checklist{font-family:system-ui,sans-serif;text-align:left;border-top:1px solid #55503F;margin-top:18px;padding-top:16px;}
+.checklist-add{display:flex;gap:6px;margin-bottom:10px;}
+.checklist-add input{flex:1;min-width:0;padding:8px 10px;border:1px solid #55503F;border-radius:4px;background:#3A362C;color:#F4EFE4;font-family:inherit;font-size:13px;}
+.checklist-add button{padding:8px 12px;border:1px solid #C08A3E;background:#C08A3E;color:#2E2A22;border-radius:4px;font-weight:bold;cursor:pointer;font-size:13px;}
+.checklist-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:14px;}
+.checklist-item input[type=checkbox]{width:16px;height:16px;accent-color:#C08A3E;flex-shrink:0;}
+.checklist-item span{flex:1;}
+.checklist-item.checked span{text-decoration:line-through;color:#6E6858;}
+.checklist-item button{background:none;border:none;color:#8A8371;cursor:pointer;font-size:15px;padding:2px 6px;}
+.checklist-empty{color:#6E6858;font-size:13px;font-style:italic;}
+.view-toggle{display:flex;justify-content:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.view-toggle button{font-family:system-ui,sans-serif;font-size:13px;padding:7px 14px;border-radius:4px;cursor:pointer;border:1px solid #55503F;background:transparent;color:#F4EFE4;}
+.view-toggle button.on{background:#C08A3E;border-color:#C08A3E;color:#2E2A22;font-weight:bold;}
+.locate-btn{font-family:system-ui,sans-serif;font-size:12px;padding:6px 12px;border-radius:4px;cursor:pointer;border:1px solid #55503F;background:transparent;color:#B4AB98;margin-bottom:12px;}
+.locate-btn.on{border-color:#C08A3E;color:#C08A3E;}
+.mapwrap iframe{width:100%;height:280px;border:0;border-radius:6px;margin-bottom:8px;}
+.placelist{font-family:system-ui,sans-serif;text-align:left;}
+.placegroup-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#8A8371;margin:16px 0 8px;}
+.placecard{display:block;text-decoration:none;color:inherit;background:#3A362C;border:1px solid #55503F;border-radius:4px;padding:10px 12px;margin-bottom:8px;}
+.placecard .pname{font-size:14px;font-weight:bold;color:#F4EFE4;}
+.placecard .paddr{font-size:12px;color:#8A8371;margin-top:2px;}
+.placecard .prating{font-size:12px;color:#C08A3E;margin-top:2px;}
+.planning{font-family:system-ui,sans-serif;text-align:left;}
+.weekend-banner{font-family:system-ui,sans-serif;font-size:13px;background:#3A362C;border:1px solid #55503F;border-radius:6px;padding:10px 12px;margin-bottom:16px;color:#B4AB98;}
+.plan-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #3A362C;}
+.plan-row:last-child{border-bottom:none;}
+.plan-time{flex-shrink:0;width:78px;font-weight:bold;font-size:13px;color:#8A8371;}
+.plan-row.now .plan-time{color:#2E2A22;background:#C08A3E;border-radius:4px;padding:2px 6px;text-align:center;}
+.plan-label{font-size:14px;}
+.plan-row.now .plan-label{color:#F4EFE4;font-weight:bold;}
+.plan-sub{font-size:12px;color:#8A8371;margin-top:2px;}
+@media(max-width:360px){
+  body{padding:12px;}
+  .grid{gap:5px;}
+  .num{font-size:26px;}
+  .unit{padding:11px 2px;}
+  .view-toggle{gap:5px;}
+  .view-toggle button{font-size:12px;padding:7px 9px;}
+}
+</style>
+</head>
+<body>
+<div class="card">
+
+<div class="view-toggle">
+<button id="btn-view-countdown" class="on">Vacances</button>
+<button id="btn-view-map">Carte de Poligny</button>
+<button id="btn-view-internat">Internat</button>
+<button id="btn-view-stage">Stage</button>
+<button id="btn-view-transports">Transports</button>
+</div>
+
+<div id="view-countdown">
+<div class="today" id="today"></div>
+<div class="eyebrow" id="eyebrow">Zone A · Besançon</div>
+<h1 id="title">Vacances de la Toussaint</h1>
+<div class="weeks" id="weeks"></div>
+<div class="grid" id="grid">
+<div class="unit"><div class="num" id="d">0</div><div class="lbl">jours</div></div>
+<div class="unit"><div class="num" id="h">0</div><div class="lbl">heures</div></div>
+<div class="unit"><div class="num" id="m">0</div><div class="lbl">min</div></div>
+<div class="unit"><div class="num" id="s">0</div><div class="lbl">sec</div></div>
+</div>
+<div class="detail" id="detail">jusqu'au samedi 17 octobre 2026, après les cours</div>
+<div class="motiv" id="motiv"></div>
+<div class="bar-track"><div class="bar-fill" id="bar"></div></div>
+<button class="share-btn" id="share-btn">Copier pour partager</button>
+
+<div class="list">
+<div class="list-title">Année scolaire 2026-2027</div>
+<div id="list-rows"></div>
+</div>
+
+<div class="checklist">
+<div class="list-title">À faire pendant les vacances</div>
+<div class="checklist-add">
+<input id="checklist-input" type="text" placeholder="Ajouter une chose à faire...">
+<button id="checklist-add-btn">Ajouter</button>
+</div>
+<div id="checklist-items"></div>
+</div>
+
+<div class="addhome">
+<b>Astuce :</b> ajoute cette page à ton écran d'accueil pour l'avoir comme une appli — Chrome : menu ⋮ → « Ajouter à l'écran d'accueil ».
+</div>
+</div>
+
+<div id="view-map" style="display:none;">
+<div class="eyebrow">Poligny, Jura</div>
+<h1 style="font-size:22px;">Autour de toi</h1>
+<button class="locate-btn" id="locate-btn">📍 Où je suis</button>
+<div class="mapwrap">
+<iframe id="map-iframe" src="https://www.google.com/maps?q=46.8347,5.7082&z=16&output=embed" loading="lazy" allowfullscreen></iframe>
+</div>
+<div class="placelist">
+
+<div class="placegroup-title">Cafés &amp; bars</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJGctjFUojjUcRcKUqa_8StY8" target="_blank" rel="noopener">
+<div class="pname">Cafe Du Centre</div><div class="paddr">4 Pl. des Déportés, 39800 Poligny</div><div class="prating">★ 4.0</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJD1UFOUojjUcRkkCLXwhsm2A" target="_blank" rel="noopener">
+<div class="pname">Pub L'Atelier</div><div class="paddr">30 Pl. des Déportés, 39800 Poligny</div><div class="prating">★ 4.8</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJiYVjA0ojjUcR5dypGA35Z1w" target="_blank" rel="noopener">
+<div class="pname">Café Moka</div><div class="paddr">2 Rue de l'Hôpital, 39800 Poligny</div><div class="prating">★ 4.6</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJ0bA-GkojjUcRjkk2u8MIQA8" target="_blank" rel="noopener">
+<div class="pname">Bar Tabac Presse La Gribouille</div><div class="paddr">4 Rue Travot, 39800 Poligny</div><div class="prating">★ 4.6</div>
+</a>
+
+<div class="placegroup-title">Boulangeries &amp; sandwichs</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJv4fkXUojjUcRdAdHGgZhRgo" target="_blank" rel="noopener">
+<div class="pname">La Corbeille Jurassienne</div><div class="paddr">65 Grande Rue, 39800 Poligny</div><div class="prating">★ 4.8</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJ444VXq88jUcRGPBJH7-ywaE" target="_blank" rel="noopener">
+<div class="pname">Boulangerie Banette</div><div class="paddr">Rue Nicolas Appert, 39800 Poligny</div><div class="prating">★ 4.5</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJhcXYOEojjUcRgwkJosU7A1k" target="_blank" rel="noopener">
+<div class="pname">L'Epi d'Or</div><div class="paddr">1 Pl. des Déportés, 39800 Poligny</div><div class="prating">★ 4.0</div>
+</a>
+
+<div class="placegroup-title">Marché &amp; restauration</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJQQoqy5AljUcRG89bj5SYhvE" target="_blank" rel="noopener">
+<div class="pname">Bistrot du marché Poligny</div><div class="paddr">N83, 39800 Poligny (à côté d'Intermarché)</div><div class="prating">★ 4.2</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJF-ulFUojjUcRv0WQcWie67o" target="_blank" rel="noopener">
+<div class="pname">Aux Platanes</div><div class="paddr">6 Pl. des Déportés, 39800 Poligny</div><div class="prating">★ 3.9</div>
+</a>
+
+<div class="placegroup-title">Pharmacies &amp; services</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJJTCPZCQjjUcRlHj5KcLCD7g" target="_blank" rel="noopener">
+<div class="pname">Pharmacie ICART by MEDIPRIX</div><div class="paddr">34 Rue du Vieil Hôpital, 39800 Poligny</div><div class="prating">★ 4.8</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJw1omQEojjUcRyl9cSGUXQuc" target="_blank" rel="noopener">
+<div class="pname">Pharmacie de Poligny</div><div class="paddr">4 Av. de la Gare, 39800 Poligny</div><div class="prating">★ 4.5</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJc6db0ksjjUcRDtRjMWHYfNI" target="_blank" rel="noopener">
+<div class="pname">La Poste</div><div class="paddr">8 Av. de la République, 39800 Poligny</div><div class="prating">★ 4.1</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJlSQi80ojjUcRjwujUIsq3Gw" target="_blank" rel="noopener">
+<div class="pname">Mairie de Poligny</div><div class="paddr">4 Rue du Champ de Foire, 39800 Poligny</div><div class="prating">★ 3.5</div>
+</a>
+
+<div class="placegroup-title">Tacos &amp; kebab</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJLaEF80ojjUcR-S5iTdgdjD8" target="_blank" rel="noopener">
+<div class="pname">RESTO INO "Chez Norredine"</div><div class="paddr">66 Grande Rue, 39800 Poligny</div><div class="prating">★ 4.5</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJUV9k2p4jjUcRiufV0Psavkg" target="_blank" rel="noopener">
+<div class="pname">Nova Kebab Grill Tacos</div><div class="paddr">69 Grande Rue, 39800 Poligny</div><div class="prating">★ 4.3</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJUZE9PZwjjUcRzU8_TQzxDDo" target="_blank" rel="noopener">
+<div class="pname">Au petit creux du Dan</div><div class="paddr">72 Grande Rue, 39800 Poligny</div><div class="prating">★ 3.9</div>
+</a>
+
+<div class="placegroup-title">Pizzerias</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJbW4IUmUjjUcRZf5z6yCFBP8" target="_blank" rel="noopener">
+<div class="pname">Le kiosque à pizzas</div><div class="paddr">Lieu-dit La Barre (parking Netto), 39800 Poligny</div><div class="prating">★ 4.8</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJsXUIu-YjjUcRpItdMPtKw5c" target="_blank" rel="noopener">
+<div class="pname">La Pizz</div><div class="paddr">102 Grande Rue, 39800 Poligny</div><div class="prating">★ 4.6</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJ444VXq88jUcRReeuebicTKk" target="_blank" rel="noopener">
+<div class="pname">La Case B</div><div class="paddr">Zone Industrielle, Rue Nicolas Appert, 39800 Poligny</div><div class="prating">★ 4.4</div>
+</a>
+
+<div class="placegroup-title">Restaurants</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJsxIhOUojjUcR75Gyz0Ete20" target="_blank" rel="noopener">
+<div class="pname">La Sergenterie</div><div class="paddr">31 Pl. des Déportés, 39800 Poligny</div><div class="prating">★ 4.5</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJmfrhK8s9jUcRPHgtefxRl4k" target="_blank" rel="noopener">
+<div class="pname">Melting Potes Restaurant Lounge</div><div class="paddr">1 Rue Paul Héroult, 39800 Poligny</div><div class="prating">★ 4.6</div>
+</a>
+
+<div class="placegroup-title">Supermarchés &amp; courses</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJNYRo_648jUcRu6Cq0o1Ke9A" target="_blank" rel="noopener">
+<div class="pname">Intermarché SUPER Poligny</div><div class="paddr">N83, 39800 Poligny</div><div class="prating">★ 4.0</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJYw9V9EojjUcR-E6JHGrRiaY" target="_blank" rel="noopener">
+<div class="pname">Vival (centre-ville, ouvert jusqu'à 21h)</div><div class="paddr">64 Grande Rue, 39800 Poligny</div><div class="prating">★ 4.5</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJB0aQDDcjjUcR_k490QII2EA" target="_blank" rel="noopener">
+<div class="pname">Netto (24h/24)</div><div class="paddr">Lieu-dit La Barre, 39800 Poligny</div><div class="prating">★ 4.0</div>
+</a>
+
+<div class="placegroup-title">Sport &amp; loisirs</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJ9U4D03o9jUcRY9u6rWWH7wc" target="_blank" rel="noopener">
+<div class="pname">SaiyanFit Poligny (salle de sport)</div><div class="paddr">Rue Nicolas Appert, 39800 Poligny</div><div class="prating">★ 4.4</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJdQnD0fs9jUcRtKqyRNh4tT4" target="_blank" rel="noopener">
+<div class="pname">L'Entracte (danse, salle de sport)</div><div class="paddr">Rue Roger Thirode, 39800 Poligny</div><div class="prating">★ 4.9</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJP9gi0EkjjUcR7IbdVz2PsHU" target="_blank" rel="noopener">
+<div class="pname">Salle Omnisports du Champ d'Orain</div><div class="paddr">11 Rue de la Faïencerie, 39800 Poligny</div><div class="prating">★ 4.0</div>
+</a>
+
+<div class="placegroup-title">Coiffeurs</div>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJ3TG9F0ojjUcR2nie_KJjQxk" target="_blank" rel="noopener">
+<div class="pname">Le Studio Des Coiffeurs</div><div class="paddr">19 Pl. des Déportés, 39800 Poligny</div><div class="prating">★ 4.8</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJ_8Nty1wjjUcRwvwXwrn6Un4" target="_blank" rel="noopener">
+<div class="pname">Western BarberShop</div><div class="paddr">5 Rte de Genève, 39800 Poligny</div><div class="prating">★ 4.8</div>
+</a>
+
+</div>
+</div>
+
+<div id="view-internat" style="display:none;">
+<div class="eyebrow">Déroulement d'une journée</div>
+<h1 style="font-size:22px;margin-bottom:16px;">Planning internat</h1>
+<div id="weekend-banner"></div>
+<div class="planning" id="planning-rows"></div>
+
+<div class="checklist">
+<div class="list-title">Checklist du soir</div>
+<div id="evening-items"></div>
+</div>
+</div>
+
+<div id="view-stage" style="display:none;">
+<div class="eyebrow">Lycée Hyacinthe Friant · Classe 2CCSHCR</div>
+<h1 style="font-size:22px;margin-bottom:4px;">Recherche de stage</h1>
+<div class="detail" style="margin-bottom:16px;">Traditionnel · Restauration collective (cuisine) · Brasserie — établissements étoilés Michelin non acceptés</div>
+<div class="planning" id="stage-rows"></div>
+<div class="detail" style="margin-top:16px;">Zones autorisées : départements 39, 25, 70, 90, 01, 69, 21, 71, 73, 74</div>
+
+<div class="checklist">
+<div class="list-title">Date limite à rendre au professeur principal</div>
+<div class="checklist-add">
+<input id="deadline-input" type="date">
+<button id="deadline-save-btn">Valider</button>
+</div>
+<div class="detail" id="deadline-status" style="margin-top:8px;"></div>
+</div>
+
+<div class="checklist">
+<div class="list-title">Entreprise trouvée</div>
+<div class="checklist-add" style="flex-direction:column;">
+<input id="ent-nom" type="text" placeholder="Nom de l'entreprise" style="margin-bottom:6px;">
+<input id="ent-ville" type="text" placeholder="Ville" style="margin-bottom:6px;">
+<input id="ent-contact" type="text" placeholder="Contact (nom, tél, email...)" style="margin-bottom:6px;">
+<button id="ent-save-btn">Enregistrer</button>
+</div>
+<div class="detail" id="ent-status" style="margin-top:8px;"></div>
+</div>
+</div>
+
+<div id="view-transports" style="display:none;">
+<div class="eyebrow">Poligny → Saint-Claude</div>
+<h1 style="font-size:22px;margin-bottom:4px;">Gare &amp; itinéraire</h1>
+<div class="detail" style="margin-bottom:16px;">Pas de train direct : compter en moyenne 2h30 à 4h30, avec 1 correspondance (train + car Mobigo selon les horaires). Les cars Mobigo (bus régionaux) apparaissent automatiquement dans l'itinéraire ci-dessous, mélangés aux trains.</div>
+
+<div class="checklist" style="margin-top:0;border-top:none;padding-top:0;">
+<div class="list-title">Mon trajet retour (train + bus)</div>
+<div class="checklist-add">
+<input id="home-village-input" type="text" placeholder="Nom de ton village d'arrivée">
+<button id="home-village-save-btn">Valider</button>
+</div>
+<div id="home-village-link"></div>
+</div>
+
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJ5zwDA648jUcRBMzbt4pmL_g" target="_blank" rel="noopener">
+<div class="pname">Gare de Poligny</div><div class="paddr">Av. de la Gare, 39800 Poligny — TER / cars Mobigo</div>
+</a>
+<a class="placecard" href="https://www.ter.sncf.com/bourgogne-franche-comte/se-deplacer/prochains-departs/poligny-87718189" target="_blank" rel="noopener">
+<div class="pname">Prochains départs (Poligny, en direct)</div><div class="paddr">Horaires SNCF TER Bourgogne-Franche-Comté</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/place/?q=place_id:ChIJs6OapGbtjEcRqOU2NmUUMMo" target="_blank" rel="noopener">
+<div class="pname">Gare de Saint-Claude</div><div class="paddr">39200 Saint-Claude — terminus de la ligne des Hirondelles</div>
+</a>
+<a class="placecard" href="https://www.google.com/maps/dir/?api=1&origin=Gare+de+Poligny,39800+Poligny&destination=Gare+de+Saint-Claude,39200+Saint-Claude&travelmode=transit" target="_blank" rel="noopener">
+<div class="pname">🚆 Itinéraire en temps réel (Google Maps)</div><div class="paddr">Horaires et correspondances mis à jour à chaque ouverture</div>
+</a>
+
+<div class="detail" style="margin-top:16px;">Billets et infos : Mobigo au 03 80 11 29 29 (lun-sam, 7h-20h), ou guichet SNCF au Pôle administratif cœur de Jura le mercredi 14h-16h.</div>
+</div>
+
+</div>
+
+<script>
+var rentree="2026-09-01T08:00:00";
+var holidays=[
+{name:"Vacances de la Toussaint",date:"2026-10-17T18:00:00",back:"2026-11-02T08:00:00"},
+{name:"Vacances de Noël",date:"2026-12-19T18:00:00",back:"2027-01-04T08:00:00"},
+{name:"Vacances d'hiver",date:"2027-02-13T18:00:00",back:"2027-03-01T08:00:00"},
+{name:"Vacances de printemps",date:"2027-04-10T18:00:00",back:"2027-04-26T08:00:00"},
+{name:"Grandes vacances",date:"2027-07-03T18:00:00",back:null}
+];
+
+function showView(view){
+var el=view==="countdown"?document.getElementById("view-countdown"):view==="map"?document.getElementById("view-map"):view==="internat"?document.getElementById("view-internat"):view==="stage"?document.getElementById("view-stage"):document.getElementById("view-transports");
+document.getElementById("view-countdown").style.display=view==="countdown"?"block":"none";
+document.getElementById("view-map").style.display=view==="map"?"block":"none";
+document.getElementById("view-internat").style.display=view==="internat"?"block":"none";
+document.getElementById("view-stage").style.display=view==="stage"?"block":"none";
+document.getElementById("view-transports").style.display=view==="transports"?"block":"none";
+el.classList.remove("view-fade");
+void el.offsetWidth;
+el.classList.add("view-fade");
+document.getElementById("btn-view-countdown").classList.toggle("on",view==="countdown");
+document.getElementById("btn-view-map").classList.toggle("on",view==="map");
+document.getElementById("btn-view-internat").classList.toggle("on",view==="internat");
+document.getElementById("btn-view-stage").classList.toggle("on",view==="stage");
+document.getElementById("btn-view-transports").classList.toggle("on",view==="transports");
+if(view==="internat"){ renderPlanning(); loadEveningChecklist(); }
+if(view==="stage"){ renderStage(); loadDeadline(); loadEntreprise(); }
+if(view==="transports"){ loadHomeVillage(); }
+}
+document.getElementById("btn-view-map").onclick=function(){ showView("map"); };
+document.getElementById("btn-view-internat").onclick=function(){ showView("internat"); };
+document.getElementById("btn-view-stage").onclick=function(){ showView("stage"); };
+document.getElementById("btn-view-transports").onclick=function(){ showView("transports"); };
+document.getElementById("btn-view-countdown").onclick=function(){ showView("countdown"); };
+
+var stagePeriods=[
+{label:"1ère période",start:"2027-01-18",end:"2027-02-05"},
+{label:"2ème période",start:"2027-05-31",end:"2027-06-26"}
+];
+function renderStage(){
+  var now=new Date();
+  var html="";
+  for(var i=0;i<stagePeriods.length;i++){
+    var p=stagePeriods[i];
+    var start=new Date(p.start+"T00:00:00");
+    var end=new Date(p.end+"T23:59:59");
+    var status, daysTxt;
+    if(now<start){
+      var diffDays=Math.ceil((start-now)/86400000);
+      status="dans "+diffDays+(diffDays>1?" jours":" jour");
+    } else if(now>=start && now<=end){
+      status="en cours";
+    } else {
+      status="terminée";
+    }
+    html+='<div class="plan-row" style="animation-delay:'+(i*0.05)+'s;">'+
+      '<div class="plan-time">'+p.label+'</div>'+
+      '<div><div class="plan-label">'+
+      start.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})+' → '+
+      end.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+
+      '</div><div class="plan-sub">'+status+'</div></div></div>';
+  }
+  document.getElementById("stage-rows").innerHTML=html;
+}
+
+// --- Date limite à rendre ---
+async function loadDeadline(){
+  var input=document.getElementById("deadline-input");
+  var status=document.getElementById("deadline-status");
+  try{
+    var res=await window.storage.get("stage:deadline");
+    if(res && res.value){
+      input.value=res.value;
+      showDeadlineStatus(res.value);
+    } else {
+      status.textContent="";
+    }
+  }catch(e){}
+}
+function showDeadlineStatus(dateStr){
+  var status=document.getElementById("deadline-status");
+  var d=new Date(dateStr+"T23:59:59");
+  var now=new Date();
+  var diffDays=Math.ceil((d-now)/86400000);
+  if(diffDays<0){
+    status.textContent="C'était le "+d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})+" — date dépassée.";
+  } else if(diffDays===0){
+    status.textContent="C'est aujourd'hui !";
+  } else {
+    status.textContent="Encore "+diffDays+(diffDays>1?" jours":" jour")+" — le "+d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  }
+}
+document.getElementById("deadline-save-btn").onclick=async function(){
+  var val=document.getElementById("deadline-input").value;
+  if(!val) return;
+  try{ await window.storage.set("stage:deadline", val); }catch(e){}
+  showDeadlineStatus(val);
+};
+
+// --- Entreprise trouvée ---
+async function loadEntreprise(){
+  try{
+    var res=await window.storage.get("stage:entreprise");
+    if(res && res.value){
+      var e=JSON.parse(res.value);
+      document.getElementById("ent-nom").value=e.nom||"";
+      document.getElementById("ent-ville").value=e.ville||"";
+      document.getElementById("ent-contact").value=e.contact||"";
+      document.getElementById("ent-status").textContent=e.nom?"Enregistré : "+e.nom+(e.ville?" ("+e.ville+")":""):"";
+    }
+  }catch(e){}
+}
+document.getElementById("ent-save-btn").onclick=async function(){
+  var data={
+    nom:document.getElementById("ent-nom").value.trim(),
+    ville:document.getElementById("ent-ville").value.trim(),
+    contact:document.getElementById("ent-contact").value.trim()
+  };
+  try{ await window.storage.set("stage:entreprise", JSON.stringify(data)); }catch(e){}
+  document.getElementById("ent-status").textContent=data.nom?"Enregistré : "+data.nom+(data.ville?" ("+data.ville+")":""):"Enregistré.";
+};
+
+// --- Village de destination personnalisé ---
+async function loadHomeVillage(){
+  try{
+    var res=await window.storage.get("transports:village");
+    if(res && res.value){
+      document.getElementById("home-village-input").value=res.value;
+      showHomeVillageLink(res.value);
+    }
+  }catch(e){}
+}
+function showHomeVillageLink(village){
+  var url="https://www.google.com/maps/dir/?api=1&origin=Gare+de+Poligny,39800+Poligny&destination="+encodeURIComponent(village)+"&travelmode=transit";
+  document.getElementById("home-village-link").innerHTML=
+    '<a class="placecard" href="'+url+'" target="_blank" rel="noopener" style="margin-top:8px;">'+
+    '<div class="pname">🚆🚌 Itinéraire vers '+escapeHtml(village)+'</div>'+
+    '<div class="paddr">Train + bus, horaires en temps réel</div></a>';
+}
+document.getElementById("home-village-save-btn").onclick=async function(){
+  var val=document.getElementById("home-village-input").value.trim();
+  if(!val) return;
+  try{ await window.storage.set("transports:village", val); }catch(e){}
+  showHomeVillageLink(val);
+};
+document.getElementById("locate-btn").onclick=function(){
+  var btn=this;
+  if(!navigator.geolocation){
+    btn.textContent="Géolocalisation indisponible";
+    return;
+  }
+  btn.textContent="Recherche en cours...";
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat=pos.coords.latitude, lng=pos.coords.longitude;
+    document.getElementById("map-iframe").src="https://www.google.com/maps?q="+lat+","+lng+"&z=16&output=embed";
+    btn.textContent="📍 Localisé";
+    btn.classList.add("on");
+  }, function(){
+    btn.textContent="Position indisponible";
+  });
+};
+
+// --- Partage compte à rebours ---
+document.getElementById("share-btn").onclick=function(){
+  var btn=this;
+  var title=document.getElementById("title").textContent;
+  var days=document.getElementById("d").textContent;
+  var text="Plus que "+days+" jours avant "+title.toLowerCase()+" ! 🎒";
+  function done(){
+    btn.textContent="Copié !";
+    btn.classList.add("copied");
+    setTimeout(function(){ btn.textContent="Copier pour partager"; btn.classList.remove("copied"); }, 2000);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){ btn.textContent="Impossible de copier"; });
+  } else {
+    btn.textContent="Impossible de copier";
+  }
+};
+
+// --- Planning internat ---
+var planning=[
+{time:"06:30",label:"Lever des élèves"},
+{time:"07:00",label:"Petit déjeuner au SCR",sub:"Descente en autonomie possible dès 7h00 · tenue de ville obligatoire pour les filières HR"},
+{time:"08:05",label:"Cours",sub:"Jusqu'à 17h35"},
+{time:"17:35",label:"Ouverture de l'internat"},
+{time:"18:00",label:"1er appel",sub:"Présence obligatoire dans les chambres"},
+{time:"18:10",label:"Repas au SCR",sub:"Jusqu'à 19h15"},
+{time:"19:15",label:"Temps de détente",sub:"Jusqu'à 19h40"},
+{time:"19:20",label:"Pause cigarette",sub:"Carte obligatoire · jusqu'à 19h30"},
+{time:"19:40",label:"Remontée dans les chambres"},
+{time:"19:40",label:"Temps de travail, 2e appel",sub:"Portes ouvertes · outils numériques avec autorisation AED"},
+{time:"21:15",label:"Temps de détente et d'hygiène",sub:"Aucun déplacement entre les chambres · jusqu'à 22h00"},
+{time:"22:00",label:"Extinction des feux"}
+];
+
+function renderPlanning(){
+  var now=new Date();
+  var dow=now.getDay();
+  var banner=document.getElementById("weekend-banner");
+  if(dow===0||dow===6){
+    banner.innerHTML='<div class="weekend-banner">Ce planning s\'applique en semaine — on est '+(dow===0?"dimanche":"samedi")+", pas de cours ni d'internat aujourd'hui.</div>";
+  } else {
+    banner.innerHTML="";
+  }
+  var nowMin=now.getHours()*60+now.getMinutes();
+  var currentIdx=-1;
+  for(var i=0;i<planning.length;i++){
+    var parts=planning[i].time.split(":");
+    var mins=parseInt(parts[0])*60+parseInt(parts[1]);
+    if(mins<=nowMin) currentIdx=i;
+  }
+  if(currentIdx===-1) currentIdx=planning.length-1;
+  var html="";
+  for(var j=0;j<planning.length;j++){
+    var p=planning[j];
+    var isNow=(j===currentIdx)&&dow!==0&&dow!==6;
+    html+='<div class="plan-row'+(isNow?" now":"")+'" style="animation-delay:'+(j*0.03)+'s;">'+
+      '<div class="plan-time">'+p.time.replace(":","H")+'</div>'+
+      '<div><div class="plan-label">'+p.label+'</div>'+
+      (p.sub?'<div class="plan-sub">'+p.sub+'</div>':'')+
+      '</div></div>';
+  }
+  document.getElementById("planning-rows").innerHTML=html;
+}
+
+// --- Checklist du soir (se réinitialise chaque jour) ---
+var eveningDefaults=["Douche","Linge de rechange préparé","Cartable / matériel prêt pour demain"];
+var eveningItems=[];
+var eveningKey="";
+
+function todayKey(){
+  var d=new Date();
+  return "internat:soir:"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+}
+
+async function loadEveningChecklist(){
+  eveningKey=todayKey();
+  try{
+    var res=await window.storage.get(eveningKey);
+    if(res && res.value){
+      eveningItems=JSON.parse(res.value);
+    } else {
+      eveningItems=eveningDefaults.map(function(t){ return {text:t,done:false}; });
+    }
+  }catch(e){
+    eveningItems=eveningDefaults.map(function(t){ return {text:t,done:false}; });
+  }
+  renderEveningChecklist();
+}
+
+async function saveEveningChecklist(){
+  try{ await window.storage.set(eveningKey, JSON.stringify(eveningItems)); }catch(e){}
+}
+
+function renderEveningChecklist(){
+  var box=document.getElementById("evening-items");
+  var html="";
+  for(var i=0;i<eveningItems.length;i++){
+    var it=eveningItems[i];
+    html+='<div class="checklist-item'+(it.done?" checked":"")+'" data-i="'+i+'">'+
+      '<input type="checkbox" '+(it.done?"checked":"")+'>'+
+      '<span></span></div>';
+  }
+  box.innerHTML=html;
+  var rows=box.querySelectorAll(".checklist-item");
+  rows.forEach(function(row){
+    var idx=parseInt(row.getAttribute("data-i"),10);
+    row.querySelector("span").textContent=eveningItems[idx].text;
+    row.querySelector("input").addEventListener("change",function(){
+      eveningItems[idx].done=!eveningItems[idx].done;
+      saveEveningChecklist();
+      renderEveningChecklist();
+    });
+  });
+}
+
+function currentHoliday(){
+  var now=new Date();
+  for(var i=0;i<holidays.length;i++){
+    var start=new Date(holidays[i].date);
+    var end=holidays[i].back?new Date(holidays[i].back):null;
+    if(now>=start && (end===null||now<end)) return holidays[i];
+  }
+  return null;
+}
+function nextHoliday(){
+  var now=new Date();
+  for(var i=0;i<holidays.length;i++){
+    if(new Date(holidays[i].date)>now) return holidays[i];
+  }
+  return null;
+}
+function periodStart(target){
+  var idx=holidays.indexOf(target);
+  if(idx===0) return new Date(rentree);
+  return new Date(holidays[idx-1].back);
+}
+function schoolDaysUntil(target){
+  var now=new Date();
+  var count=0;
+  var cur=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  var end=new Date(target.getFullYear(),target.getMonth(),target.getDate());
+  while(cur<end){
+    var day=cur.getDay();
+    if(day!==0&&day!==6) count++;
+    cur.setDate(cur.getDate()+1);
+  }
+  return count;
+}
+function renderList(){
+  var now=new Date();
+  var rows="";
+  for(var i=0;i<holidays.length;i++){
+    var h=holidays[i];
+    var d=new Date(h.date);
+    var isPast=d<now;
+    var isActive=h===nextHoliday();
+    var schoolDays=d>now?schoolDaysUntil(d):null;
+    var dateTxt=d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
+    rows+='<div class="list-row'+(isActive?" active":"")+'" style="animation-delay:'+(i*0.04)+'s;'+(isPast?"opacity:.4;":"")+'">'+
+      '<span class="name">'+h.name+'</span>'+
+      (schoolDays!==null?'<span class="schooldays">'+schoolDays+' j. de cours</span>':'')+
+      '<span class="date">'+dateTxt+'</span>'+
+      '</div>';
+  }
+  document.getElementById("list-rows").innerHTML=rows;
+}
+function setCounters(diff){
+  if(diff<0) diff=0;
+  var days=Math.floor(diff/86400000);
+  var hours=Math.floor(diff/3600000)%24;
+  var mins=Math.floor(diff/60000)%60;
+  var secs=Math.floor(diff/1000)%60;
+  bumpIfChanged("d",days);
+  bumpIfChanged("h",hours);
+  bumpIfChanged("m",mins);
+  document.getElementById("s").textContent=secs;
+  return days;
+}
+function bumpIfChanged(id,val){
+  var el=document.getElementById(id);
+  if(el.textContent!=String(val)){
+    el.textContent=val;
+    el.classList.remove("bump");
+    void el.offsetWidth;
+    el.classList.add("bump");
+  }
+}
+function tick(){
+  var now=new Date();
+  document.getElementById("today").textContent=now.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  var inHoliday=currentHoliday();
+  var grid=document.getElementById("grid");
+  if(inHoliday && inHoliday.back){
+    document.getElementById("eyebrow").textContent="En vacances";
+    document.getElementById("title").textContent="Retour en cours";
+    var back=new Date(inHoliday.back);
+    document.getElementById("detail").textContent="le "+back.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    var days=setCounters(back-now);
+    var weeks=Math.floor(days/7);
+    var rest=days%7;
+    document.getElementById("weeks").textContent="Soit "+(weeks>0?weeks+(weeks>1?" semaines":" semaine")+(rest>0?" et "+rest+(rest>1?" jours":" jour"):""):days+(days>1?" jours":" jour"))+" de vacances restantes";
+    document.getElementById("motiv").textContent=days<=1?"Dernier jour, profite bien !":"Profite de tes vacances.";
+    grid.classList.toggle("pulse",days<1);
+    var total=back-new Date(inHoliday.date);
+    var elapsed=now-new Date(inHoliday.date);
+    document.getElementById("bar").style.width=(total>0?Math.min(100,Math.max(0,elapsed/total*100)):0)+"%";
+    renderListIfNeeded();
+    return;
+  }
+  document.getElementById("eyebrow").textContent="Zone A · Besançon";
+  var target=nextHoliday();
+  if(!target){
+    document.getElementById("title").textContent="Bonnes vacances !";
+    grid.style.display="none";
+    document.getElementById("detail").textContent="";
+    document.getElementById("weeks").textContent="";
+    document.getElementById("motiv").textContent="";
+    document.getElementById("bar").style.width="100%";
+    renderListIfNeeded();
+    return;
+  }
+  grid.style.display="grid";
+  document.getElementById("title").textContent=target.name;
+  var targetDate=new Date(target.date);
+  var days=setCounters(targetDate-now);
+  document.getElementById("detail").textContent="jusqu'au "+targetDate.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+", après les cours";
+  var weeks=Math.floor(days/7);
+  var rest=days%7;
+  document.getElementById("weeks").textContent=weeks>0?weeks+(weeks>1?" semaines":" semaine")+(rest>0?" et "+rest+(rest>1?" jours":" jour"):""):days+(days>1?" jours":" jour");
+  document.getElementById("motiv").textContent=
+    days<=1?"C'est demain !":
+    days<=3?"Encore un tout petit effort.":
+    days<=7?"Plus qu'une semaine, tiens bon.":
+    days<=14?"Deux petites semaines et c'est bon.":
+    days<=30?"Ça avance, courage.":
+    "C'est encore loin, mais ça vient.";
+  grid.classList.remove("pulse");
+  var start=periodStart(target);
+  var total=targetDate-start;
+  var elapsed=now-start;
+  document.getElementById("bar").style.width=(total>0?Math.min(100,Math.max(0,elapsed/total*100)):0)+"%";
+  renderListIfNeeded();
+}
+var lastListDay=null;
+function renderListIfNeeded(){
+  var d=new Date().toDateString();
+  if(d!==lastListDay){
+    lastListDay=d;
+    renderList();
+  }
+}
+
+// --- Checklist vacances ---
+var items=[];
+async function loadChecklist(){
+  try{
+    var res=await window.storage.get("vacances:checklist");
+    if(res && res.value) items=JSON.parse(res.value);
+  }catch(e){ items=[]; }
+  renderChecklist();
+}
+async function saveChecklist(){
+  try{ await window.storage.set("vacances:checklist", JSON.stringify(items)); }catch(e){}
+}
+function renderChecklist(){
+  var box=document.getElementById("checklist-items");
+  if(!items.length){
+    box.innerHTML='<div class="checklist-empty">Rien pour l\u2019instant.</div>';
+    return;
+  }
+  box.innerHTML=items.map(function(x,i){
+    return '<div class="checklist-item '+(x.done?"checked":"")+'" style="animation-delay:'+(i*0.05)+'s;">'+
+      '<input type="checkbox" '+(x.done?"checked":"")+' data-i="'+i+'">'+
+      '<span>'+escapeHtml(x.text)+'</span>'+
+      '<button data-del="'+i+'">×</button></div>';
+  }).join("");
+  box.querySelectorAll("input").forEach(function(el){
+    el.onchange=function(){
+      items[+this.dataset.i].done=this.checked;
+      saveChecklist();
+    };
+  });
+  box.querySelectorAll("button").forEach(function(el){
+    el.onclick=function(){
+      items.splice(+this.dataset.del,1);
+      saveChecklist();
+      renderChecklist();
+    };
+  });
+}
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c];
+  });
+}
+document.getElementById("checklist-add-btn").onclick=addChecklistItem;
+document.getElementById("checklist-input").addEventListener("keydown",function(e){
+  if(e.key==="Enter") addChecklistItem();
+});
+function addChecklistItem(){
+  var input=document.getElementById("checklist-input");
+  var val=input.value.trim();
+  if(!val) return;
+  items.push({text:val,done:false});
+  input.value="";
+  saveChecklist();
+  renderChecklist();
+}
+
+tick();
+loadChecklist();
+setInterval(tick,1000);
+</script>
+</body>
+</html>
